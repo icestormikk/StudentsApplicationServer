@@ -1,6 +1,7 @@
 package com.icestormikk.StudentsApplicationServer.services.interfaces.implementations;
 
 import com.icestormikk.StudentsApplicationServer.domain.Student;
+import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentAlreadyExistsException;
 import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentNotFoundException;
 import com.icestormikk.StudentsApplicationServer.repositories.StudentRepository;
 import com.icestormikk.StudentsApplicationServer.services.interfaces.StudentService;
@@ -31,18 +32,23 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student addObject(Student object) {
-        log.info("The Student object is being added");
-        return repository.add(object);
+        try {
+            log.info("The Student object is being added");
+            return repository.add(object);
+        } catch (StudentAlreadyExistsException e) {
+            log.error("An error occurred while adding an object {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Optional<Student> updateObjectById(Long id, Student object) {
+    public Student updateObjectById(Long id, Student object) {
         try {
             log.info("The Student class object with id {} is being updated", id);
-            return Optional.of(repository.updateById(id, object));
+            return repository.updateById(id, object);
         } catch (StudentNotFoundException e) {
             log.error("During the update, the Student class object with id {} could not be found", id);
-            return Optional.empty();
+            throw new RuntimeException(e);
         }
     }
 

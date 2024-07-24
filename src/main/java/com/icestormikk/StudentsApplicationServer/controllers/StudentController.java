@@ -32,38 +32,25 @@ public class StudentController {
 
     @PostMapping()
     public ResponseEntity<Student> addStudent(@RequestBody Student studentObj) {
-        try {
-            Student student = this.studentService.addObject(studentObj);
-            return ResponseEntity.ok(student);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        Student student = this.studentService.addObject(studentObj);
+        return ResponseEntity.ok(student);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Student> updateStudent(@PathVariable(name = "id") Long id, @RequestBody Student studentObj) {
-        Optional<Student> student = this.studentService.updateObjectById(id, studentObj);
-        return student.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+        Student student = this.studentService.updateObjectById(id, studentObj);
+        return ResponseEntity.ok(student);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Student> deleteStudent(@PathVariable(name = "id") Long id) {
-        try {
-            this.studentService.deleteObjectBy(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        this.studentService.deleteObjectBy(id);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping()
     public ResponseEntity<Student> deleteStudentByStudentId(@RequestParam(name = "student_id") Long studentId) {
-        try {
-            this.studentService.deleteObjectByStudentId(studentId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        this.studentService.deleteObjectByStudentId(studentId);
+        return ResponseEntity.ok().build();
     }
 }

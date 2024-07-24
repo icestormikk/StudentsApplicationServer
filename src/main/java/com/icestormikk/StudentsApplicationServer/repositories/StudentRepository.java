@@ -1,6 +1,7 @@
 package com.icestormikk.StudentsApplicationServer.repositories;
 
 import com.icestormikk.StudentsApplicationServer.domain.Student;
+import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentAlreadyExistsException;
 import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentNotFoundException;
 import com.icestormikk.StudentsApplicationServer.repositories.interfaces.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,11 @@ public class StudentRepository implements Repository<Student, Long> {
     }
 
     @Override
-    public Student add(Student object) {
+    public Student add(Student object) throws StudentAlreadyExistsException {
+        if (this.getStudentByStudentId(object.studentId).isPresent()) {
+            throw new StudentAlreadyExistsException();
+        }
+
         String sql = String.format(
             "INSERT INTO %s (firstname, lastname, patronymic, birthday, group_id, student_id) VALUES" +
                     "('%s', '%s', '%s', '%s', %d, %d) RETURNING ID",
@@ -127,12 +132,7 @@ public class StudentRepository implements Repository<Student, Long> {
     }
 
     public void deleteByStudentId(Long studentId) throws StudentNotFoundException {
-        Student student = this.jdbcTemplate.queryForObject(
-            String.format("SELECT * FROM %s WHERE student_id = %d", STUDENTS_TABLE, studentId),
-            (resultSet, rowIndex) -> resultSetToStudent(resultSet)
-        );
-
-        if (student == null) {
+        if (this.getStudentByStudentId(studentId).isEmpty()) {
             throw new StudentNotFoundException();
         }
 
@@ -148,5 +148,18 @@ public class StudentRepository implements Repository<Student, Long> {
         }
 
         return student.get();
+    }
+
+    private Optional<Student> getStudentByStudentId(Long studentId) {
+        try {
+            Student student = this.jdbcTemplate.queryForObject(
+                String.format("SELECT * FROM %s WHERE student_id = %d", STUDENTS_TABLE, studentId),
+                (resultSet, rowIndex) -> resultSetToStudent(resultSet)
+            );
+
+            return Optional.ofNullable(student);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }

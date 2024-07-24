@@ -6,6 +6,11 @@ import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentNotFou
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Интерфейс, общий для всех репозиториев приложения
+ * @param <T> Тип объекта, к которому будут применяться операции
+ * @param <ID> Тип идентификатора объекта
+ */
 public interface Repository<T, ID> {
     List<T> getAll();
     Optional<T> getById(ID id);

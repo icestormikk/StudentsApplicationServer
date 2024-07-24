@@ -19,6 +19,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Репозиторий для взаимодействия с объектами класса Student
+ */
 @Component
 public class StudentRepository implements Repository<Student, Long> {
     @Autowired
@@ -26,6 +29,12 @@ public class StudentRepository implements Repository<Student, Long> {
 
     private static final String STUDENTS_TABLE = "students.students";
 
+    /**
+     * Функция преобразования набора данных из БД в объект класса Student
+     * @param resultSet Набор данных из БД
+     * @return Объект класса Student
+     * @throws SQLException
+     */
     private Student resultSetToStudent(ResultSet resultSet) throws SQLException {
         return new Student(
             resultSet.getLong("id"),
@@ -38,6 +47,10 @@ public class StudentRepository implements Repository<Student, Long> {
         );
     }
 
+    /**
+     * Получение всех имеющихся в БД объектов Student
+     * @return Список со всеми объектами класса Student
+     */
     @Override
     public List<Student> getAll() {
         return this.jdbcTemplate.query(
@@ -46,6 +59,11 @@ public class StudentRepository implements Repository<Student, Long> {
         );
     }
 
+    /**
+     * Получение студента по его id
+     * @param id идентификатор студента, которого надо найти
+     * @return Объект класса Student, если поиск завершился удачно, Optional.empty иначе
+     */
     @Override
     public Optional<Student> getById(Long id) {
         try {
@@ -61,6 +79,12 @@ public class StudentRepository implements Repository<Student, Long> {
         }
     }
 
+    /**
+     * Добавление студента в базу данных
+     * @param object Объект с информацией о новом студенте
+     * @return Новосозданный объект класса Student
+     * @throws StudentAlreadyExistsException
+     */
     @Override
     public Student add(Student object) throws StudentAlreadyExistsException {
         if (this.getStudentByStudentId(object.studentId).isPresent()) {
@@ -88,6 +112,13 @@ public class StudentRepository implements Repository<Student, Long> {
         return this.getStudentByKey(holder.getKey().longValue());
     }
 
+    /**
+     * Обновление объекта Student о его id
+     * @param id идентификатор студента, которого необходимо обновить
+     * @param object Объект с новой информацией о студенте
+     * @return Обновлённый объект класса Student
+     * @throws StudentNotFoundException
+     */
     @Override
     public Student updateById(Long id, Student object) throws StudentNotFoundException {
         if (this.getById(id).isEmpty()) {
@@ -120,6 +151,11 @@ public class StudentRepository implements Repository<Student, Long> {
         return this.getStudentByKey(holder.getKey().longValue());
     }
 
+    /**
+     * Удаление студента по его id
+     * @param id идентификатор студента, которого необходимо удалить
+     * @throws StudentNotFoundException
+     */
     @Override
     public void deleteById(Long id) throws StudentNotFoundException {
         if (this.getById(id).isEmpty()) {
@@ -131,6 +167,11 @@ public class StudentRepository implements Repository<Student, Long> {
         );
     }
 
+    /**
+     * Удаление студента по его student_id
+     * @param studentId уникальный номер студента, которого необходимо удалить
+     * @throws StudentNotFoundException
+     */
     public void deleteByStudentId(Long studentId) throws StudentNotFoundException {
         if (this.getStudentByStudentId(studentId).isEmpty()) {
             throw new StudentNotFoundException();
@@ -141,6 +182,11 @@ public class StudentRepository implements Repository<Student, Long> {
         );
     }
 
+    /**
+     * Получение объекта по ключу, возвращенному из БД
+     * @param key Ключ, который ссылается на нужный объект
+     * @return Объект класса Student
+     */
     private Student getStudentByKey(Number key) {
         Optional<Student> student = this.getById(key.longValue());
         if (student.isEmpty()) {
@@ -150,6 +196,11 @@ public class StudentRepository implements Repository<Student, Long> {
         return student.get();
     }
 
+    /**
+     * Получение студента по его student_id
+     * @param studentId уникальный номер студента, которого надо найти
+     * @return Объект класса Student, если поиск завершился удачно, Optional.empty иначе
+     */
     private Optional<Student> getStudentByStudentId(Long studentId) {
         try {
             Student student = this.jdbcTemplate.queryForObject(

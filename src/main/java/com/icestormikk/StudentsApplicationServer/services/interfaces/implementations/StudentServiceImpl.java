@@ -56,4 +56,14 @@ public class StudentServiceImpl implements StudentService {
             throw new RuntimeException(e);
         }
     }
+
+    public void deleteObjectByStudentId(Long id) {
+        try {
+            log.info("An object of the Student class with student_id {} is being deleted", id);
+            repository.deleteByStudentId(id);
+        } catch (StudentNotFoundException e) {
+            log.error("During deletion, the Student class object with student_id {} could not be found", id);
+            throw new RuntimeException(e);
+        }
+    }
 }

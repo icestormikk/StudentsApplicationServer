@@ -126,6 +126,21 @@ public class StudentRepository implements Repository<Student, Long> {
         );
     }
 
+    public void deleteByStudentId(Long studentId) throws StudentNotFoundException {
+        Student student = this.jdbcTemplate.queryForObject(
+            String.format("SELECT * FROM %s WHERE student_id = %d", STUDENTS_TABLE, studentId),
+            (resultSet, rowIndex) -> resultSetToStudent(resultSet)
+        );
+
+        if (student == null) {
+            throw new StudentNotFoundException();
+        }
+
+        this.jdbcTemplate.update(
+            String.format("DELETE FROM %s WHERE student_id = %d", STUDENTS_TABLE, studentId)
+        );
+    }
+
     private Student getStudentByKey(Number key) {
         Optional<Student> student = this.getById(key.longValue());
         if (student.isEmpty()) {

@@ -56,4 +56,14 @@ public class StudentController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @DeleteMapping()
+    public ResponseEntity<Student> deleteStudentByStudentId(@RequestParam(name = "student_id") Long studentId) {
+        try {
+            this.studentService.deleteObjectByStudentId(studentId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

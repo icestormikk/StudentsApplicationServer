@@ -4,6 +4,7 @@ import com.icestormikk.StudentsApplicationServer.domain.Student;
 import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentAlreadyExistsException;
 import com.icestormikk.StudentsApplicationServer.domain.exceptions.StudentNotFoundException;
 import com.icestormikk.StudentsApplicationServer.repositories.interfaces.Repository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -11,11 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.format.DateTimeFormatter;
+import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +20,7 @@ import java.util.Optional;
  * Репозиторий для взаимодействия с объектами класса Student
  */
 @Component
+@Slf4j
 public class StudentRepository implements Repository<Student, Long> {
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -33,17 +31,16 @@ public class StudentRepository implements Repository<Student, Long> {
      * Функция преобразования набора данных из БД в объект класса Student
      * @param resultSet Набор данных из БД
      * @return Объект класса Student
-     * @throws SQLException
      */
     private Student resultSetToStudent(ResultSet resultSet) throws SQLException {
         return new Student(
-            resultSet.getLong("id"),
             resultSet.getString("firstname"),
             resultSet.getString("lastname"),
             resultSet.getString("patronymic"),
             resultSet.getDate("birthday").toLocalDate(),
             resultSet.getLong("group_id"),
-            resultSet.getLong("student_id")
+            resultSet.getLong("student_id"),
+            resultSet.getLong("id")
         );
     }
 
@@ -68,9 +65,9 @@ public class StudentRepository implements Repository<Student, Long> {
     public Optional<Student> getById(Long id) {
         try {
             Student student = this.jdbcTemplate.queryForObject(
-                    String.format("SELECT * FROM %s WHERE id = ?", STUDENTS_TABLE),
-                    (resultSet, rowIndex) -> resultSetToStudent(resultSet),
-                    id
+                String.format("SELECT * FROM %s WHERE id = ?", STUDENTS_TABLE),
+                (resultSet, rowIndex) -> resultSetToStudent(resultSet),
+                id
             );
 
             return Optional.ofNullable(student);
@@ -93,19 +90,22 @@ public class StudentRepository implements Repository<Student, Long> {
 
         String sql = String.format(
             "INSERT INTO %s (firstname, lastname, patronymic, birthday, group_id, student_id) VALUES" +
-                    "('%s', '%s', '%s', '%s', %d, %d) RETURNING ID",
-            STUDENTS_TABLE,
-            object.firstname,
-            object.lastname,
-            object.patronymic,
-            object.birthday.format(DateTimeFormatter.ofPattern("uuuu-MM-dd")),
-            object.groupId,
-            object.studentId
+                    "(?, ?, ?, ?, ?, ?) RETURNING ID",
+            STUDENTS_TABLE
         );
 
         KeyHolder holder = new GeneratedKeyHolder();
         this.jdbcTemplate.update(
-            con -> con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS),
+            (con) -> {
+                var ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, object.firstname);
+                ps.setString(2, object.lastname);
+                ps.setString(3, object.patronymic);
+                ps.setDate(4, Date.valueOf(object.birthday));
+                ps.setLong(5, object.groupId);
+                ps.setLong(6, object.studentId);
+                return ps;
+            },
             holder
         );
 
@@ -134,7 +134,6 @@ public class StudentRepository implements Repository<Student, Long> {
         this.jdbcTemplate.update(
             (con) -> {
                 var ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-
                 ps.setString(1, object.firstname);
                 ps.setString(2, object.lastname);
                 ps.setString(3, object.patronymic);
@@ -142,7 +141,6 @@ public class StudentRepository implements Repository<Student, Long> {
                 ps.setLong(5, object.groupId);
                 ps.setLong(6, object.studentId);
                 ps.setLong(7, object.id);
-
                 return ps;
             },
             holder
@@ -177,8 +175,14 @@ public class StudentRepository implements Repository<Student, Long> {
             throw new StudentNotFoundException();
         }
 
+        String sql = String.format("DELETE FROM %s WHERE student_id = ?", STUDENTS_TABLE);
+
         this.jdbcTemplate.update(
-            String.format("DELETE FROM %s WHERE student_id = %d", STUDENTS_TABLE, studentId)
+            (con) -> {
+                var ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setLong(1, studentId);
+                return ps;
+            }
         );
     }
 

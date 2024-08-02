@@ -14,8 +14,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @ToString
 public class Student {
-    // уникальный идентификатор студента в БД
-    public Long id = 0L;
     // имя студента
     public String firstname;
     // фамилия студента
@@ -28,4 +26,6 @@ public class Student {
     public Long groupId;
     // уникальный номер студента (номер студенческого билета)
     public Long studentId;
+    // уникальный идентификатор студента в БД
+    public Long id = 0L;
 }

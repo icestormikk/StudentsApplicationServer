@@ -28,7 +28,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<Student> getAll() {
         log.info("All objects of the Student class are being retrieved");
-        return repository.getAll();
+        return this.repository.getAll();
     }
 
     /**
@@ -39,7 +39,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public Optional<Student> getObjectById(Long id) {
         log.info("An object of the Student class with id {} is being retrieved", id);
-        return repository.getById(id);
+        return this.repository.getById(id);
     }
 
     /**
@@ -51,7 +51,7 @@ public class StudentServiceImpl implements StudentService {
     public Student addObject(Student object) {
         try {
             log.info("The Student object is being added");
-            return repository.add(object);
+            return this.repository.add(object);
         } catch (StudentAlreadyExistsException e) {
             log.error("An error occurred while adding an object {}", e.getMessage());
             throw new RuntimeException(e);
@@ -60,7 +60,8 @@ public class StudentServiceImpl implements StudentService {
 
     /**
      * Обновление объекта Student о его id
-     * @param id идентификатор студента, которого необходимо обновить
+     *
+     * @param id     идентификатор студента, которого необходимо обновить
      * @param object Объект с новой информацией о студенте
      * @return Обновлённый объект класса Student
      */
@@ -68,7 +69,7 @@ public class StudentServiceImpl implements StudentService {
     public Student updateObjectById(Long id, Student object) {
         try {
             log.info("The Student class object with id {} is being updated", id);
-            return repository.updateById(id, object);
+            return this.repository.updateById(id, object);
         } catch (StudentNotFoundException e) {
             log.error("During the update, the Student class object with id {} could not be found", id);
             throw new RuntimeException(e);
@@ -83,7 +84,7 @@ public class StudentServiceImpl implements StudentService {
     public void deleteObjectBy(Long id) {
         try  {
             log.info("An object of the Student class with id {} is being deleted", id);
-            repository.deleteById(id);
+            this.repository.deleteById(id);
         } catch (StudentNotFoundException e) {
             log.error("During deletion, the Student class object with id {} could not be found", id);
             throw new RuntimeException(e);
@@ -97,7 +98,7 @@ public class StudentServiceImpl implements StudentService {
     public void deleteObjectByStudentId(Long id) {
         try {
             log.info("An object of the Student class with student_id {} is being deleted", id);
-            repository.deleteByStudentId(id);
+            this.repository.deleteByStudentId(id);
         } catch (StudentNotFoundException e) {
             log.error("During deletion, the Student class object with student_id {} could not be found", id);
             throw new RuntimeException(e);
